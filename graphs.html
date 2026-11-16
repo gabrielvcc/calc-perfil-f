@@ -1,0 +1,45 @@
+<header class="access-header graph-header">
+  <a class="brand" href="/"><img src="/favicon.png" width="38" height="38" alt=""><strong>Gráficos de Perfis de Alumínio<small>Calculadoras</small></strong></a>
+  <div class="account-actions"><a class="secondary-btn" href="/"><i data-lucide="layout-grid" aria-hidden="true"></i>Calculadoras</a>
+    <div class="account-menu" data-account-menu>
+      <button class="account-avatar" type="button" data-account-toggle aria-label="Opções da conta" aria-expanded="false" aria-controls="graphAccountDropdown"><img data-account-photo width="40" height="40" alt="" referrerpolicy="no-referrer" hidden><span data-account-initials aria-hidden="true">?</span></button>
+      <div class="account-dropdown" id="graphAccountDropdown" data-account-dropdown hidden><div class="account-dropdown-content"><button class="account-sign-out" type="button" data-sign-out><i data-lucide="log-out" aria-hidden="true"></i>Sair</button></div></div>
+    </div>
+  </div>
+</header>
+<main class="graph-main">
+  <div class="graph-heading"><div><p class="eyebrow">Resistência · Perfil vertical</p><h1>Gráficos de perfis</h1></div>
+    <div class="graph-tabs" role="tablist" aria-label="Gráficos e catálogo"><button type="button" role="tab" data-graph-tab="generator" aria-controls="graphGenerator" aria-selected="true">Gerador</button><button type="button" role="tab" data-graph-tab="catalog" aria-controls="graphCatalog" aria-selected="false">Catálogo de perfis</button><button type="button" role="tab" data-graph-tab="saved" aria-controls="graphSaved" aria-selected="false">Meus gráficos</button></div>
+  </div>
+  <p id="graphMessage" class="graph-message" role="status" hidden></p>
+  <section id="graphGenerator" role="tabpanel"><div class="graph-workspace">
+    <form id="graphForm" class="graph-controls" novalidate>
+      <label for="graphProfile">Perfil de alumínio<select id="graphProfile" required><option value="">Selecione um perfil</option></select></label>
+      <div id="graphProfileInfo" class="graph-profile-info" hidden><img id="graphProfileImage" alt="Seção do perfil selecionado" hidden><dl id="graphProfileProperties"></dl></div>
+      <label for="graphTitle">Título<input id="graphTitle" maxlength="120" placeholder="Nome do gráfico"></label>
+      <fieldset><legend>Largura da folha (mm)</legend><div class="graph-triple"><label>Mínima<input name="x_min" type="number" value="600" min="1"></label><label>Máxima<input name="x_max" type="number" value="1500" min="1"></label><label>Marcações<input name="x_tick" type="number" value="100" min="1"></label></div></fieldset>
+      <fieldset><legend>Altura do perfil (mm)</legend><div class="graph-triple"><label>Mínima<input name="y_min" type="number" value="2200" min="1"></label><label>Máxima<input name="y_max" type="number" value="5500" min="1"></label><label>Marcações<input name="y_tick" type="number" value="200" min="1"></label></div></fieldset>
+      <label>Passo de cálculo (mm)<input name="sample_step" type="number" value="10" min="1" step="any"></label>
+      <label>Pressões de ensaio (Pa)<textarea id="graphPressures" rows="2">600, 800, 1000, 1200, 1400, 1600, 1800, 2000, 2200, 2400</textarea></label>
+      <div id="graphColors" class="graph-colors"></div>
+      <div class="graph-appearance"><label>Linha (px)<input name="line_width" type="number" value="2" min="0.5" max="5" step="0.5"></label><label class="inline-check"><input name="grid" type="checkbox" checked>Grade</label><label class="inline-check"><input name="legend" type="checkbox" checked>Legenda</label></div>
+      <button class="primary-btn" type="submit" id="generateGraph"><i data-lucide="chart-spline" aria-hidden="true"></i>Gerar gráfico</button>
+    </form>
+    <div class="graph-preview"><div class="graph-toolbar"><span id="graphStatus">Nenhum gráfico gerado</span><div class="graph-commands">
+      <button class="primary-btn" id="generateGraphTop" type="submit" form="graphForm"><i data-lucide="chart-spline" aria-hidden="true"></i>Gerar</button><button class="secondary-btn" id="newGraph" type="button" title="Novo gráfico"><i data-lucide="file-plus-2" aria-hidden="true"></i>Novo</button><button class="secondary-btn" id="saveGraph" type="button" disabled><i data-lucide="save" aria-hidden="true"></i>Salvar</button><button class="secondary-btn" id="copyGraph" type="button" title="Salvar como cópia" aria-label="Salvar como cópia" disabled><i data-lucide="copy" aria-hidden="true"></i></button>
+      <select id="graphExportFormat" aria-label="Formato de download"><option value="png">PNG</option><option value="svg">SVG</option></select><button class="secondary-btn" id="downloadGraph" type="button" title="Baixar gráfico" aria-label="Baixar gráfico" disabled><i data-lucide="download" aria-hidden="true"></i></button>
+    </div></div><div id="profileChart" role="img" aria-label="Gráfico de largura da folha por altura limite para cada pressão"></div><p class="graph-model" id="graphModel">Perfil vertical · Largura da folha · Pressão de ensaio</p></div>
+  </div></section>
+  <section id="graphCatalog" role="tabpanel" hidden>
+    <div class="graph-list-heading"><label>Buscar perfil<input id="profileSearch" type="search" placeholder="Código ou nome"></label><div class="graph-commands"><button class="secondary-btn" id="reloadProfiles" type="button" title="Atualizar catálogo"><i data-lucide="refresh-cw" aria-hidden="true"></i></button><button class="primary-btn" id="newProfile" type="button"><i data-lucide="plus" aria-hidden="true"></i>Cadastrar perfil</button></div></div>
+    <div class="alloy-table-wrap"><table class="alloy-table"><thead><tr><th>Perfil</th><th>Liga</th><th>Jx (mm⁴)</th><th>Wx (mm³)</th><th>Peso (kg/m)</th><th>Área (mm²)</th><th>Ações</th></tr></thead><tbody id="graphProfilesList"></tbody></table></div>
+  </section>
+  <section id="graphSaved" role="tabpanel" hidden><div class="graph-list-heading"><h2>Meus gráficos</h2><button class="secondary-btn" type="button" id="reloadSaved" title="Atualizar gráficos"><i data-lucide="refresh-cw" aria-hidden="true"></i></button></div><div class="alloy-table-wrap"><table class="alloy-table"><thead><tr><th>Título</th><th>Perfil</th><th>Atualizado em</th><th>Ações</th></tr></thead><tbody id="savedGraphsList"></tbody></table></div></section>
+</main>
+<footer class="bottom-bar"><p>developed by <a href="https://github.com/gabrielvcc" target="_blank" rel="noopener">gabrielvc</a> | <a href="#">v2.1.1</a></p></footer>
+<dialog id="profileEditorDialog" class="graph-profile-dialog"><form id="profileEditor" class="dialog-content" novalidate>
+  <div class="dialog-heading"><h2 id="profileEditorTitle">Cadastrar perfil</h2><button class="icon-btn" type="button" id="closeProfileEditor" aria-label="Fechar"><i data-lucide="x" aria-hidden="true"></i></button></div>
+  <div class="input-grid"><label>Código<input name="code" required maxlength="60"></label><label>Nome<input name="name" required maxlength="120"></label><label>Liga<select name="alloy" required></select></label><div class="graph-alloy-info" id="profileAlloyInfo"></div><label>Jx (mm⁴)<input name="jx" type="number" step="any" min="0" required></label><label>Wx (mm³)<input name="wx" type="number" step="any" min="0" required></label><label>Peso (kg/m)<input name="weight" type="number" step="any" min="0"></label><label>Área (mm²)<input name="area" type="number" step="any" min="0"></label></div>
+  <div class="profile-image-editor"><img id="profileImagePreview" alt="Seção do perfil" hidden><label>Imagem da seção<input id="profileImageFile" type="file" accept="image/png,image/jpeg,image/webp"></label><button class="secondary-btn" id="removeProfileImage" type="button">Remover imagem</button></div>
+  <p id="profileEditorError" class="access-error" role="alert" hidden></p><button class="primary-btn" type="submit" id="saveProfile"><i data-lucide="save" aria-hidden="true"></i>Salvar perfil</button>
+</form></dialog>

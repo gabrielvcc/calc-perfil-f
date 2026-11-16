@@ -8,6 +8,7 @@ const apps = {
   glass: { path: '/espessura-vidro/', title: 'Espessura de vidro', note: 'NBR 7199', icon: 'panels-top-left' },
   wind: { path: '/pressao-vento/', title: 'Pressão de vento', note: 'NBR 6123 e NBR 10821', icon: 'wind' },
 };
+apps.graphics = { path: '/graficos/', title: 'Gráficos de perfis', note: 'Catálogo e limites de utilização', icon: 'chart-spline' };
 const accessView = document.createElement('div');
 accessView.className = 'app-view';
 accessView.id = 'accessView';
@@ -15,11 +16,16 @@ const calculatorView = document.createElement('div');
 calculatorView.className = 'app-view is-preparing';
 calculatorView.id = 'calculatorView';
 calculatorView.hidden = true;
+const graphicsView = document.createElement('div');
+graphicsView.className = 'app-view';
+graphicsView.id = 'graphicsView';
+graphicsView.hidden = true;
 let contactEmail = 'eng@gabrielvc.com.br';
 let accountEmail = '';
 let accessState = null;
 let authorizedUid = null;
 let calculatorPromise = null;
+let graphicsPromise = null;
 let adminInitialized = false;
 let renderRevision = 0;
 let accessViewKey = '';
@@ -135,8 +141,21 @@ async function loadCalculator() {
   return calculatorPromise;
 }
 
+async function loadGraphics() {
+  if (!graphicsPromise) {
+    graphicsPromise = (async () => {
+      graphicsView.innerHTML = await loadMarkup('./graphs.html');
+      initializeAccountMenus(graphicsView);
+      const module = await import('./graphs.js');
+      await module.initializeGraphs(graphicsView);
+      return module;
+    })();
+  }
+  return graphicsPromise;
+}
+
 function focusHeading() {
-  const heading = document.body.dataset.screen === 'calculator'
+  const heading = document.body.dataset.screen === 'graphics' ? graphicsView.querySelector('h1') : document.body.dataset.screen === 'calculator'
     ? calculatorView.querySelector('#toolTitle')
     : accessView.querySelector('.access-main > section:not([hidden]) h1');
   if (heading) {
@@ -158,13 +177,15 @@ async function renderState(state, { focus = false } = {}) {
   if (state.status === 'authorized' && routeApp && canUse(routeApp)) {
     mount.setAttribute('aria-busy', 'true');
     try {
-      const calculator = await loadCalculator();
+      const graphic = routeApp === 'graphics';
+      const calculator = await (graphic ? loadGraphics() : loadCalculator());
       if (revision !== renderRevision) return;
       accessView.hidden = true;
-      calculatorView.hidden = false;
-      document.body.dataset.screen = 'calculator';
-      calculator.showCalculatorRoute();
-      calculatorView.classList.remove('is-preparing');
+      calculatorView.hidden = graphic;
+      graphicsView.hidden = !graphic;
+      document.body.dataset.screen = graphic ? 'graphics' : 'calculator';
+      if (graphic) { delete document.body.dataset.tool; calculator.showGraphs(); }
+      else { calculator.showCalculatorRoute(); calculatorView.classList.remove('is-preparing'); }
       window.lucide?.createIcons();
       if (focus) focusHeading();
     } catch (error) {
@@ -173,9 +194,10 @@ async function renderState(state, { focus = false } = {}) {
     return;
   }
   mount.removeAttribute('aria-busy');
-  if (!calculatorView.hidden) closeDialogs();
+  if (!calculatorView.hidden || !graphicsView.hidden) closeDialogs();
   accessView.hidden = false;
   calculatorView.hidden = true;
+  graphicsView.hidden = true;
   delete document.body.dataset.tool;
   document.body.dataset.screen = 'access';
   const title = accessView.querySelector('.brand strong').firstChild.textContent;
@@ -216,6 +238,7 @@ function showPageError() {
   mount.removeAttribute('aria-busy');
   accessView.hidden = false;
   calculatorView.hidden = true;
+  graphicsView.hidden = true;
   delete document.body.dataset.tool;
   document.body.dataset.screen = 'access';
   accessViewKey = '';
@@ -256,7 +279,7 @@ window.addEventListener('calculator-access-denied', (event) => {
 
 try {
   accessView.innerHTML = await loadMarkup('./access.html');
-  mount.replaceChildren(accessView, calculatorView);
+  mount.replaceChildren(accessView, calculatorView, graphicsView);
   document.body.dataset.screen = 'access';
   bindAccessPage();
   showAccessSection('checkingAccessSection');

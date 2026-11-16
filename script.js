@@ -101,7 +101,8 @@ function selectTool(tool) {
   document.querySelector('#manualTab').hidden = tool === 'wind';
   if (tool === 'wind' && activeMethod === 'manual') selectMethod('tabled', false);
   document.querySelector('#frameSection').hidden = tool === 'glass' || tool === 'wind';
-  document.querySelectorAll('.app-navigation a').forEach((link) => {
+  document.querySelector('[data-graphics-link]').hidden = !canUse('graphics');
+  document.querySelectorAll('.app-navigation a[data-tool]').forEach((link) => {
     link.hidden = !canUse(link.dataset.tool);
     if (link.dataset.tool === tool) link.setAttribute('aria-current', 'page');
     else link.removeAttribute('aria-current');
@@ -1234,7 +1235,8 @@ document.querySelectorAll('#nbrBuildingWidthInput, #nbrBuildingLengthInput, #nbr
 });
 
 window.addEventListener('calculator-permissions-changed', () => {
-  document.querySelectorAll('.app-navigation a').forEach((link) => { link.hidden = !canUse(link.dataset.tool); });
+  document.querySelector('[data-graphics-link]').hidden = !canUse('graphics');
+  document.querySelectorAll('.app-navigation a[data-tool]').forEach((link) => { link.hidden = !canUse(link.dataset.tool); });
   updateGlassLayout();
   renderResults(lastCalculation);
 });

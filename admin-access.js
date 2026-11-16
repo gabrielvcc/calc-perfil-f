@@ -1,6 +1,7 @@
 import { authorizedFetch } from './auth-client.js';
 
 const appLabels = { complete: 'Completo', profiles: 'Perfis', glass: 'Vidro', wind: 'Vento' };
+appLabels.graphics = 'Gráficos';
 const attemptReasons = { not_allowlisted: 'E-mail não cadastrado', inactive: 'Acesso desativado', no_apps: 'Nenhuma calculadora liberada' };
 const attemptDate = new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
 
