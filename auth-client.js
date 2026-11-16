@@ -14,6 +14,16 @@ const invalidSessionCodes = new Set(['auth/user-disabled', 'auth/user-token-expi
 export const getProfile = () => profile;
 export const canUse = (app) => profile?.apps?.[app] === true;
 
+export function getAccount() {
+  if (!currentUser) return null;
+  const google = currentUser.providerData?.find((provider) => provider.providerId === 'google.com');
+  return {
+    name: google?.displayName || currentUser.displayName || profile?.name || '',
+    email: currentUser.email || profile?.email || '',
+    photoURL: google?.photoURL || currentUser.photoURL || '',
+  };
+}
+
 export async function signIn() {
   if (!identity) throw new Error('O login está indisponível. Tente novamente em instantes.');
   await identity.signIn();

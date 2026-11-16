@@ -1,4 +1,5 @@
 import { initializeAccess, getProfile, canUse, signIn, signOut, refreshAccess } from './auth-client.js';
+import { initializeAccountMenus, updateAccountMenus, closeAccountMenus } from './account-menu.js';
 
 const mount = document.querySelector('#app');
 const apps = {
@@ -52,7 +53,8 @@ function updateContact() {
 
 function bindAccessPage() {
   const requestDialog = document.querySelector('#requestAccessDialog');
-  accessView.querySelectorAll('[data-sign-out]').forEach((button) => button.addEventListener('click', signOut));
+  accessView.querySelectorAll('#deniedSection [data-sign-out]').forEach((button) => button.addEventListener('click', signOut));
+  initializeAccountMenus(accessView);
   document.querySelectorAll('[data-request-access]').forEach((button) => button.addEventListener('click', () => {
     document.querySelector('#requestEmail').value = accountEmail;
     document.querySelector('#requestName').value = getProfile()?.name || '';
@@ -126,6 +128,7 @@ async function loadCalculator() {
   if (!calculatorPromise) {
     calculatorPromise = (async () => {
       calculatorView.innerHTML = await loadMarkup('./calculator.html');
+      initializeAccountMenus(calculatorView);
       return import('./script.js');
     })();
   }
@@ -151,6 +154,7 @@ async function renderState(state, { focus = false } = {}) {
   accountEmail = state.profile?.email || state.email || '';
   accessView.querySelectorAll('[data-account-email]').forEach((element) => { element.textContent = accountEmail; });
   document.querySelector('#accessAccount').hidden = !accountEmail;
+  updateAccountMenus();
   if (state.status === 'authorized' && routeApp && canUse(routeApp)) {
     mount.setAttribute('aria-busy', 'true');
     try {
@@ -221,6 +225,7 @@ function showPageError() {
 }
 
 function closeDialogs() {
+  closeAccountMenus();
   document.querySelectorAll('dialog[open]').forEach((dialog) => dialog.close('cancel'));
 }
 

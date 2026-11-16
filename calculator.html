@@ -3,7 +3,13 @@
     <img src="/favicon.png" width="34" height="34" alt="">
     <strong>Resistência de Perfis de Alumínio · Pressão de Vento · Espessura Mínima de Vidro<small>Calculadoras</small></strong>
   </a>
-  <div class="account-actions"><span id="calculatorUserEmail"></span><a class="secondary-btn" href="/" title="Calculadoras"><i data-lucide="layout-grid" aria-hidden="true"></i>Calculadoras</a><button class="secondary-btn" type="button" data-sign-out><i data-lucide="log-out" aria-hidden="true"></i>Sair</button></div>
+  <div class="account-actions">
+    <a class="secondary-btn" href="/" title="Calculadoras"><i data-lucide="layout-grid" aria-hidden="true"></i>Calculadoras</a>
+    <div class="account-menu" id="calculatorAccount" data-account-menu>
+      <button class="account-avatar" type="button" data-account-toggle aria-label="Opções da conta" aria-expanded="false" aria-controls="calculatorAccountDropdown"><img data-account-photo alt="" width="40" height="40" referrerpolicy="no-referrer" hidden><span data-account-initials aria-hidden="true">?</span></button>
+      <div class="account-dropdown" id="calculatorAccountDropdown" data-account-dropdown hidden><div class="account-dropdown-content"><button class="account-sign-out" type="button" data-sign-out><i data-lucide="log-out" aria-hidden="true"></i>Sair</button></div></div>
+    </div>
+  </div>
 </header>
 
 <div id="main-container">
@@ -113,7 +119,7 @@
   </main>
 </div>
 
-<footer class="bottom-bar"><p>developed by <a href="https://github.com/gabrielvcc" target="_blank" rel="noopener">gabrielvc</a> | <a href="#" id="version-link">v2.1.1</a></p></footer>
+<footer class="bottom-bar"><p>developed by <a href="https://github.com/gabrielvcc" target="_blank" rel="noopener">gabrielvc</a> | <a href="#" id="version-link">v2.1.2</a></p></footer>
 
 <dialog class="factor-dialog" id="standardsDialog">
   <div class="dialog-content factor-dialog-content">

@@ -1,6 +1,11 @@
 <header class="access-header">
   <a class="brand" href="/"><img src="/favicon.png" alt="" width="38" height="38"><strong>Resistência de Perfis de Alumínio · Pressão de Vento · Espessura Mínima de Vidro<small>Calculadoras</small></strong></a>
-  <div class="account-actions" id="accessAccount" hidden><span data-account-email></span><button class="secondary-btn" type="button" data-sign-out><i data-lucide="log-out" aria-hidden="true"></i>Sair</button></div>
+  <div class="account-actions" id="accessAccount" hidden>
+    <div class="account-menu" data-account-menu>
+      <button class="account-avatar" type="button" data-account-toggle aria-label="Opções da conta" aria-expanded="false" aria-controls="accessAccountDropdown"><img data-account-photo alt="" width="40" height="40" referrerpolicy="no-referrer" hidden><span data-account-initials aria-hidden="true">?</span></button>
+      <div class="account-dropdown" id="accessAccountDropdown" data-account-dropdown hidden><div class="account-dropdown-content"><button class="account-sign-out" type="button" data-sign-out><i data-lucide="log-out" aria-hidden="true"></i>Sair</button></div></div>
+    </div>
+  </div>
 </header>
 
 <main class="access-main">

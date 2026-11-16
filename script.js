@@ -1,4 +1,4 @@
-import { apiBaseUrl, authorizedFetch, canUse, getProfile, signOut } from './auth-client.js';
+import { apiBaseUrl, authorizedFetch, canUse } from './auth-client.js';
 
 const dialogButtons = document.querySelectorAll('[data-dialog]');
 const closeDialogButtons = document.querySelectorAll('[data-close-dialog]');
@@ -35,7 +35,7 @@ const toolDefinitions = {
   glass: { path: '/espessura-vidro/', title: 'Espessura de vidro mínima', scope: 'NBR 7199', method: 'manual' },
   wind: { path: '/pressao-vento/', title: 'Pressão de vento', scope: 'Pressão de ensaio', method: 'tabled' },
 };
-const methodQuery = { tabled: 'tabela', nbr: 'nbr6123', manual: 'manual' };
+const legacyMethodQuery = { tabled: 'tabela', nbr: 'nbr6123', manual: 'manual' };
 const frameSelectors = {
   largura: '#frameWidthInput', altura: '#frameHeightInput', folhas: '#frameLeavesInput',
   glassSection: '#glassSection', glassWidth: '#glassWidthInput', glassHeight: '#glassHeightInput',
@@ -60,9 +60,10 @@ function routeTool() {
 }
 
 function updateRoute() {
-  const url = new URL(toolDefinitions[activeTool].path, location.origin);
-  url.searchParams.set('metodo', methodQuery[activeMethod]);
-  history.replaceState({}, '', url);
+  const url = new URL(location.href);
+  url.pathname = toolDefinitions[activeTool].path;
+  url.searchParams.delete('metodo');
+  history.replaceState({ ...history.state, calculatorMethod: activeMethod }, '', url);
 }
 
 function updateGlassLayout() {
@@ -1232,8 +1233,6 @@ document.querySelectorAll('#nbrBuildingWidthInput, #nbrBuildingLengthInput, #nbr
   input.addEventListener('input', markFactorDialogsDirty);
 });
 
-document.querySelectorAll('#top-bar [data-sign-out]').forEach((button) => button.addEventListener('click', signOut));
-document.querySelector('#calculatorUserEmail').textContent = getProfile()?.email || '';
 window.addEventListener('calculator-permissions-changed', () => {
   document.querySelectorAll('.app-navigation a').forEach((link) => { link.hidden = !canUse(link.dataset.tool); });
   updateGlassLayout();
@@ -1244,7 +1243,9 @@ let calculatorInitialized = false;
 export function showCalculatorRoute() {
   const tool = routeTool();
   const requestedMethod = new URLSearchParams(location.search).get('metodo');
-  let method = Object.keys(methodQuery).find((key) => methodQuery[key] === requestedMethod)
+  const savedMethod = history.state?.calculatorMethod;
+  let method = Object.keys(legacyMethodQuery).find((key) => legacyMethodQuery[key] === requestedMethod)
+    || (Object.keys(legacyMethodQuery).includes(savedMethod) ? savedMethod : null)
     || (calculatorInitialized ? activeMethod : toolDefinitions[tool].method);
   if (tool === 'wind' && method === 'manual') method = 'tabled';
   if (!calculatorInitialized || activeTool !== tool || document.body.dataset.tool !== tool) selectTool(tool);
