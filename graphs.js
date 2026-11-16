@@ -3,6 +3,7 @@ import { authorizedFetch, getProfile } from './auth-client.js';
 const palette = ['#2176c1', '#d94b45', '#dc9c17', '#23966f', '#e9712a', '#22a9b7', '#a855c7', '#9ba720', '#4656c7', '#e55b9d', '#607d8b', '#744b38'];
 let root, chart, config, profiles = [], result = null, generatedTitle = '', selectedProfile = null;
 let openedGraph = null, snapshotSource = null, editedProfile = null, image = '', revision = 0, imageRevision = 0;
+let exporting = false, generatedRevision = -1;
 const $ = (selector) => root.querySelector(selector);
 const fmt = (value) => value == null ? '—' : Number(value).toLocaleString('pt-BR', { maximumFractionDigits: 2 });
 
@@ -157,14 +158,15 @@ async function generate(event) {
   button.disabled = true; $('#generateGraphTop').disabled = true; message('');
   try {
     const data = await api('generate', 'POST', submitted);
-    result = data; generatedTitle = submitted.title;
+    result = data; generatedRevision = current; generatedTitle = submitted.title;
     chart.setOption(chartOptions(data, generatedTitle), true);
     $('#graphStatus').textContent = `${data.curves.length} curvas · ${data.curves[0].points.length} pontos por curva`;
-    $('#graphModel').textContent = `${snapshotSource ? 'Versão salva · ' : ''}${data.profile.code} · Tensão + flecha H/175 + flecha 20 mm · E ${fmt(data.profile.melast)} MPa · LRT ${fmt(data.profile.lrt)} MPa`;
+    $('#graphModel').textContent = `${snapshotSource ? 'Versão salva · ' : ''}${data.profile.code} · ${data.criteria.join(' + ')} · E ${fmt(data.profile.melast)} MPa · LRT ${fmt(data.profile.lrt)} MPa`;
     $('#profileChart').setAttribute('aria-label', `${generatedTitle}. ${data.curves.length} curvas de pressão. Larguras de ${data.parameters.x_min} a ${data.parameters.x_max} mm.`);
-    for (const id of ['saveGraph', 'copyGraph', 'downloadGraph']) $(`#${id}`).disabled = current !== revision;
+    for (const id of ['saveGraph', 'copyGraph', 'downloadGraph']) $(`#${id}`).disabled = current !== revision || (id === 'downloadGraph' && exporting);
     if (current !== revision) $('#graphStatus').textContent = 'Parâmetros alterados · gere novamente';
     if (!data.curves.some((curve) => curve.points[0][1] >= data.parameters.y_min && curve.points.at(-1)[1] <= data.parameters.y_max)) message('As curvas estão fora da faixa de altura exibida. Ajuste os limites do eixo.');
+    return data;
   } catch (error) { message(error.message, true); }
   finally { button.disabled = false; $('#generateGraphTop').disabled = false; }
 }
@@ -214,7 +216,9 @@ async function openSaved(id) {
     if (field) { if (field.type === 'checkbox') field.checked = value; else field.value = value; }
   }
   $('#graphPressures').value = saved.parameters.pressures.join(', '); colors(saved.parameters.colors);
-  dirty(); tab('generator'); message('Dados do perfil preservados na versão salva.'); await generate();
+  dirty(); tab('generator');
+  const generated = await generate();
+  if (generated && saved.model !== generated.model) message('Gráfico recalculado com flecha absoluta de 30 mm. Salve para atualizar a versão gravada; os dados do perfil foram preservados.');
 }
 
 function alloyInfo() {
@@ -249,18 +253,16 @@ async function saveProfile(event) {
   finally { button.disabled = false; }
 }
 
-function download() {
+async function download() {
   if (!result || $('#downloadGraph').disabled) return;
-  const format = $('#graphExportFormat').value;
-  const host = document.createElement('div'); host.style.cssText = 'position:fixed;left:-10000px;width:1200px;height:900px'; document.body.append(host);
-  const exporter = window.echarts.init(host, null, { renderer: format === 'svg' ? 'svg' : 'canvas', width: 1200, height: 900 });
+  const data = result, title = generatedTitle;
+  const format = $('#graphExportFormat').value, page = $('#graphExportPage').value;
+  exporting = true; $('#downloadGraph').disabled = true; $('#downloadGraph').setAttribute('aria-busy', 'true');
   try {
-    const options = chartOptions(result, generatedTitle); options.tooltip.show = false; options.title.subtextStyle.width = 1100;
-    exporter.setOption(options);
-    const url = format === 'svg' ? URL.createObjectURL(new Blob([exporter.renderToSVGString()], { type: 'image/svg+xml' })) : exporter.getDataURL({ type: 'png', pixelRatio: 2 });
-    const link = document.createElement('a'); link.href = url; link.download = `${generatedTitle.replace(/[<>:"/\\|?*\x00-\x1f]/g, '_')}.${format}`; document.body.append(link); link.click(); link.remove();
-    if (format === 'svg') setTimeout(() => URL.revokeObjectURL(url), 1000);
-  } finally { exporter.dispose(); host.remove(); }
+    const { downloadGraph } = await import('./graph-export.js');
+    await downloadGraph(data, { title, format, page, colors: data.parameters.colors.length ? data.parameters.colors : palette });
+  } catch (error) { message(error.message, true); }
+  finally { exporting = false; $('#downloadGraph').disabled = generatedRevision !== revision || !result; $('#downloadGraph').removeAttribute('aria-busy'); }
 }
 
 export async function initializeGraphs(view) {
@@ -307,7 +309,7 @@ export async function initializeGraphs(view) {
     } catch (error) { $('#profileEditorError').textContent = error.message; $('#profileEditorError').hidden = false; }
   });
   $('#saveGraph').addEventListener('click', () => save()); $('#copyGraph').addEventListener('click', () => save(true));
-  $('#downloadGraph').addEventListener('click', () => { try { download(); } catch (error) { message(error.message, true); } });
+  $('#downloadGraph').addEventListener('click', download);
   $('#newGraph').addEventListener('click', () => { $('#graphForm').reset(); openedGraph = null; snapshotSource = null; result = null; preview(null); colors(); dirty(); $('#graphStatus').textContent = 'Nenhum gráfico gerado'; chart.setOption(chartOptions(null), true); message(''); });
   colors(); await loadProfiles();
   new ResizeObserver(() => { if (chart && $('#profileChart').clientWidth) { chart.resize(); chart.setOption(chartOptions(result, generatedTitle), true); } }).observe($('#profileChart'));

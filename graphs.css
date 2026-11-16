@@ -28,6 +28,7 @@
 .graph-commands { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
 .graph-commands button { min-height: 38px; padding: 8px 12px; font-size: 12px; }
 .graph-commands select { width: 80px; height: 38px; font-size: 12px; padding: 0 7px; }
+#graphExportPage { width: 132px; }
 .graph-main button:disabled { opacity: 0.45; cursor: default; transform: none; box-shadow: none; }
 #profileChart { width: 100%; height: 670px; background: white; }
 .graph-model { margin-top: 12px; color: var(--medium-gray); font-size: 11px; }
