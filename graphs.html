@@ -7,6 +7,18 @@
     </div>
   </div>
 </header>
+<div class="graph-shell">
+  <aside class="app-sidebar graph-sidebar">
+    <p class="nav-label">Calculadora de Resistência de Perfis de Alumínio</p>
+    <nav class="app-navigation" aria-label="Calculadoras">
+      <a href="/graficos/" data-graph-app="graphics" aria-current="page"><i data-lucide="chart-spline" aria-hidden="true"></i><span>Gráficos de perfis</span></a>
+      <a href="/calculo-completo/" data-graph-app="complete"><i data-lucide="layout-dashboard" aria-hidden="true"></i><span>Cálculo completo</span></a>
+      <a href="/resistencia-perfis/" data-graph-app="profiles"><i data-lucide="columns-2" aria-hidden="true"></i><span>Resistência de perfis</span></a>
+      <a href="/espessura-vidro/" data-graph-app="glass"><i data-lucide="panels-top-left" aria-hidden="true"></i><span>Espessura de vidro</span></a>
+      <a href="/pressao-vento/" data-graph-app="wind"><i data-lucide="wind" aria-hidden="true"></i><span>Pressão de vento</span></a>
+    </nav>
+    <button class="secondary-btn standards-button" type="button" id="graphStandards"><i data-lucide="book-open" aria-hidden="true"></i>Normas</button>
+  </aside>
 <main class="graph-main">
   <div class="graph-heading"><div><p class="eyebrow">Resistência · Perfil vertical</p><h1>Gráficos de perfis</h1></div>
     <div class="graph-tabs" role="tablist" aria-label="Gráficos e catálogo"><button type="button" role="tab" data-graph-tab="generator" aria-controls="graphGenerator" aria-selected="true">Gerador</button><button type="button" role="tab" data-graph-tab="catalog" aria-controls="graphCatalog" aria-selected="false">Catálogo de perfis</button><button type="button" role="tab" data-graph-tab="saved" aria-controls="graphSaved" aria-selected="false">Meus gráficos</button></div>
@@ -15,7 +27,7 @@
   <section id="graphGenerator" role="tabpanel"><div class="graph-workspace">
     <form id="graphForm" class="graph-controls" novalidate>
       <label for="graphProfile">Perfil de alumínio<select id="graphProfile" required><option value="">Selecione um perfil</option></select></label>
-      <div id="graphProfileInfo" class="graph-profile-info" hidden><img id="graphProfileImage" alt="Seção do perfil selecionado" hidden><dl id="graphProfileProperties"></dl></div>
+      <div id="graphProfileInfo" class="graph-profile-info" hidden><img id="graphProfileImage" alt="Seção do perfil selecionado" hidden><p id="graphProfileClassification" class="graph-profile-description" hidden></p><p id="graphProfileDescription" class="graph-profile-description" hidden></p><dl id="graphProfileProperties"></dl></div>
       <label for="graphTitle">Título<input id="graphTitle" maxlength="120" placeholder="Nome do gráfico"></label>
       <fieldset><legend>Largura da folha (mm)</legend><div class="graph-triple"><label>Mínima<input name="x_min" type="number" value="600" min="1"></label><label>Máxima<input name="x_max" type="number" value="1500" min="1"></label><label>Marcações<input name="x_tick" type="number" value="100" min="1"></label></div></fieldset>
       <fieldset><legend>Altura do perfil (mm)</legend><div class="graph-triple"><label>Mínima<input name="y_min" type="number" value="2200" min="1"></label><label>Máxima<input name="y_max" type="number" value="5500" min="1"></label><label>Marcações<input name="y_tick" type="number" value="200" min="1"></label></div></fieldset>
@@ -31,15 +43,27 @@
     </div></div><div id="profileChart" role="img" aria-label="Gráfico de largura da folha por altura limite para cada pressão"></div><p class="graph-model" id="graphModel">Perfil vertical · Largura da folha · Pressão de ensaio</p></div>
   </div></section>
   <section id="graphCatalog" role="tabpanel" hidden>
-    <div class="graph-list-heading"><label>Buscar perfil<input id="profileSearch" type="search" placeholder="Código ou nome"></label><div class="graph-commands"><button class="secondary-btn" id="reloadProfiles" type="button" title="Atualizar catálogo"><i data-lucide="refresh-cw" aria-hidden="true"></i></button><button class="primary-btn" id="newProfile" type="button"><i data-lucide="plus" aria-hidden="true"></i>Cadastrar perfil</button></div></div>
-    <div class="alloy-table-wrap"><table class="alloy-table"><thead><tr><th>Perfil</th><th>Liga</th><th>Jx (mm⁴)</th><th>Wx (mm³)</th><th>Peso (kg/m)</th><th>Área (mm²)</th><th>Ações</th></tr></thead><tbody id="graphProfilesList"></tbody></table></div>
+    <div class="graph-list-heading"><label>Buscar perfil<input id="profileSearch" type="search" placeholder="Código, linha ou fabricante"></label><div class="graph-commands"><button class="secondary-btn" id="reloadProfiles" type="button" title="Atualizar catálogo"><i data-lucide="refresh-cw" aria-hidden="true"></i></button><button class="primary-btn" id="newProfile" type="button"><i data-lucide="plus" aria-hidden="true"></i>Cadastrar perfil</button></div></div>
+    <div class="alloy-table-wrap"><table class="alloy-table"><thead><tr><th>Perfil</th><th>Linha / Fabricante</th><th>Tipo</th><th>Liga</th><th>Jx (mm⁴)</th><th>Wx (mm³)</th><th>Peso (kg/m)</th><th>Área (mm²)</th><th>Ações</th></tr></thead><tbody id="graphProfilesList"></tbody></table></div>
   </section>
   <section id="graphSaved" role="tabpanel" hidden><div class="graph-list-heading"><h2>Meus gráficos</h2><button class="secondary-btn" type="button" id="reloadSaved" title="Atualizar gráficos"><i data-lucide="refresh-cw" aria-hidden="true"></i></button></div><div class="alloy-table-wrap"><table class="alloy-table"><thead><tr><th>Título</th><th>Perfil</th><th>Atualizado em</th><th>Ações</th></tr></thead><tbody id="savedGraphsList"></tbody></table></div></section>
 </main>
+</div>
 <footer class="bottom-bar"><p>developed by <a href="https://github.com/gabrielvcc" target="_blank" rel="noopener">gabrielvc</a> | <a href="#">v2.1.1</a></p></footer>
+<dialog id="graphStandardsDialog" class="factor-dialog">
+  <div class="dialog-content factor-dialog-content">
+    <div class="dialog-heading"><h2>Normas utilizadas</h2><button class="icon-btn" type="button" id="closeGraphStandards" aria-label="Fechar"><i data-lucide="x" aria-hidden="true"></i></button></div>
+    <div class="standards-list">
+      <article class="standard-item"><strong>NBR 6123</strong><time>2023</time><p>Forças devidas ao vento em edificações</p></article>
+      <article class="standard-item"><strong>NBR 10821</strong><time>2023</time><p>Esquadrias para edificações | Esquadrias externas</p></article>
+      <article class="standard-item"><strong>NBR 8117</strong><time>2021</time><p>Alumínio e suas ligas</p></article>
+      <article class="standard-item"><strong>NBR 7199</strong><time>2016</time><p>Vidros na construção civil</p></article>
+    </div>
+  </div>
+</dialog>
 <dialog id="profileEditorDialog" class="graph-profile-dialog"><form id="profileEditor" class="dialog-content" novalidate>
   <div class="dialog-heading"><h2 id="profileEditorTitle">Cadastrar perfil</h2><button class="icon-btn" type="button" id="closeProfileEditor" aria-label="Fechar"><i data-lucide="x" aria-hidden="true"></i></button></div>
-  <div class="input-grid"><label>Código<input name="code" required maxlength="60"></label><label>Nome<input name="name" required maxlength="120"></label><label>Liga<select name="alloy" required></select></label><div class="graph-alloy-info" id="profileAlloyInfo"></div><label>Jx (mm⁴)<input name="jx" type="number" step="any" min="0" required></label><label>Wx (mm³)<input name="wx" type="number" step="any" min="0" required></label><label>Peso (kg/m)<input name="weight" type="number" step="any" min="0"></label><label>Área (mm²)<input name="area" type="number" step="any" min="0"></label></div>
+  <div class="input-grid"><label>Código<input name="code" required maxlength="60"></label><label>Liga<select name="alloy" required></select></label><label>Fabricante<input name="manufacturer" required maxlength="120"></label><label>Linha<input name="line" required maxlength="120"></label><label>Tipo de perfil<select name="profile_type" required><option value="">Selecione</option></select></label><div class="graph-alloy-info" id="profileAlloyInfo"></div><label class="profile-description-field">Descrição<textarea name="description" rows="2" maxlength="240" placeholder="Opcional"></textarea></label><label>Jx (mm⁴)<input name="jx" type="number" step="any" min="0" required></label><label>Wx (mm³)<input name="wx" type="number" step="any" min="0" required></label><label>Peso (kg/m)<input name="weight" type="number" step="any" min="0"></label><label>Área (mm²)<input name="area" type="number" step="any" min="0"></label></div>
   <div class="profile-image-editor"><img id="profileImagePreview" alt="Seção do perfil" hidden><label>Imagem da seção<input id="profileImageFile" type="file" accept="image/png,image/jpeg,image/webp"></label><button class="secondary-btn" id="removeProfileImage" type="button">Remover imagem</button></div>
   <p id="profileEditorError" class="access-error" role="alert" hidden></p><button class="primary-btn" type="submit" id="saveProfile"><i data-lucide="save" aria-hidden="true"></i>Salvar perfil</button>
 </form></dialog>

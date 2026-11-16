@@ -1,3 +1,5 @@
+import { pressureLabels } from './graph-labels.js';
+
 const SVG = 'http://www.w3.org/2000/svg';
 const FONT = 'GraphReport';
 const ink = '#233640', muted = '#637680', blue = '#176a9d', border = '#d8e2e8';
@@ -97,6 +99,7 @@ function image(source) {
 
 function chartSvg(data, width, height, colors) {
   const p = data.parameters;
+  const labels = pressureLabels(data, { width: width - 82, height: height - 56, fontSize: 7.5, fontFamily: FONT });
   const chart = window.echarts.init(null, null, { renderer: 'svg', ssr: true, width, height });
   try {
     chart.setOption({
@@ -105,7 +108,7 @@ function chartSvg(data, width, height, colors) {
       grid: { left: 64, right: 18, top: 12, bottom: 44 },
       xAxis: { type: 'value', name: 'Largura da folha (mm)', nameLocation: 'middle', nameGap: 30, nameTextStyle: { fontSize: 9 }, min: p.x_min, max: p.x_max, interval: p.x_tick, axisLabel: { fontSize: 8, hideOverlap: true, formatter: fmt }, splitLine: { show: p.grid, lineStyle: { color: '#e0e6ea', width: 0.6 } }, axisLine: { show: true, lineStyle: { color: '#9eafb9', width: 0.6 } } },
       yAxis: { type: 'value', name: 'Altura do perfil (mm)', nameLocation: 'middle', nameGap: 46, nameTextStyle: { fontSize: 9 }, min: p.y_min, max: p.y_max, interval: p.y_tick, axisLabel: { fontSize: 8, hideOverlap: true, formatter: fmt }, splitLine: { show: p.grid, lineStyle: { color: '#e0e6ea', width: 0.6 } } },
-      series: data.curves.map((curve) => ({ name: `${fmt(curve.pressure)} Pa`, type: 'line', data: curve.points, showSymbol: false, smooth: false, clip: true, silent: true, lineStyle: { width: p.line_width * 0.75 } })),
+      series: data.curves.map((curve, index) => ({ name: `${fmt(curve.pressure)} Pa`, type: 'line', data: curve.points, showSymbol: false, smooth: false, clip: true, silent: true, markPoint: labels[index], lineStyle: { width: p.line_width * 0.75 } })),
     });
     const document = new DOMParser().parseFromString(chart.renderToSVGString(), 'image/svg+xml');
     if (document.querySelector('parsererror')) throw new Error('N\u00e3o foi poss\u00edvel preparar o gr\u00e1fico.');
@@ -131,7 +134,8 @@ async function report(data, { title, page, colors }, faces) {
   const profile = data.profile, identityWidth = landscape ? 221 : inner - 124;
   text(svg, context, 'PERFIL DE ALUM\u00cdNIO', margin, 62, { size: 7, color: muted });
   const codeBottom = paragraph(svg, context, profile.code, margin, 87, identityWidth, { size: 22, weight: 600 });
-  const nameBottom = paragraph(svg, context, profile.name, margin, codeBottom + 18, identityWidth, { size: 9, color: muted });
+  const description = profile.description ?? profile.name ?? '';
+  const nameBottom = description ? paragraph(svg, context, description, margin, codeBottom + 18, identityWidth, { size: 9, color: muted }) : codeBottom;
   text(svg, context, `Liga ${profile.alloy}`, margin, nameBottom + 20, { size: 9, weight: 600, width: identityWidth });
   const imageX = width - margin - 94;
   node(svg, 'rect', { x: imageX, y: 55, width: 94, height: 94, fill: '#ffffff', stroke: border, 'stroke-width': 0.6, rx: 2 });

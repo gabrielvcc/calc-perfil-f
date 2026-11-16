@@ -1,4 +1,5 @@
-import { authorizedFetch, getProfile } from './auth-client.js';
+import { authorizedFetch, getProfile, canUse } from './auth-client.js';
+import { pressureLabels } from './graph-labels.js';
 
 const palette = ['#2176c1', '#d94b45', '#dc9c17', '#23966f', '#e9712a', '#22a9b7', '#a855c7', '#9ba720', '#4656c7', '#e55b9d', '#607d8b', '#744b38'];
 let root, chart, config, profiles = [], result = null, generatedTitle = '', selectedProfile = null;
@@ -6,6 +7,11 @@ let openedGraph = null, snapshotSource = null, editedProfile = null, image = '',
 let exporting = false, generatedRevision = -1;
 const $ = (selector) => root.querySelector(selector);
 const fmt = (value) => value == null ? '—' : Number(value).toLocaleString('pt-BR', { maximumFractionDigits: 2 });
+const description = (profile) => profile?.description ?? profile?.name ?? '';
+
+function navigation() {
+  root.querySelectorAll('[data-graph-app]').forEach((link) => { link.hidden = !canUse(link.dataset.graphApp); });
+}
 
 async function api(path, method = 'GET', payload) {
   const response = await authorizedFetch(`/graphics/${path}`, { method, ...(payload ? { headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) } : {}) });
@@ -81,6 +87,11 @@ function preview(profile) {
   selectedProfile = profile;
   $('#graphProfileInfo').hidden = !profile;
   $('#graphProfileProperties').replaceChildren();
+  $('#graphProfileDescription').textContent = description(profile);
+  $('#graphProfileDescription').hidden = !description(profile);
+  const classification = [profile?.manufacturer, profile?.line, config.profile_types[profile?.profile_type]].filter(Boolean).join(' · ');
+  $('#graphProfileClassification').textContent = classification;
+  $('#graphProfileClassification').hidden = !classification;
   $('#graphProfileImage').hidden = !profile?.image;
   if (profile?.image) $('#graphProfileImage').src = profile.image;
   else $('#graphProfileImage').removeAttribute('src');
@@ -103,11 +114,14 @@ async function chooseProfile(id) {
 function renderCatalogue() {
   const list = $('#graphProfilesList'); list.replaceChildren();
   const term = $('#profileSearch').value.toLocaleLowerCase('pt-BR');
-  const visible = profiles.filter((profile) => `${profile.code} ${profile.name}`.toLocaleLowerCase('pt-BR').includes(term));
-  if (!visible.length) { const cell = list.insertRow().insertCell(); cell.colSpan = 7; cell.textContent = 'Nenhum perfil encontrado.'; }
+  const visible = profiles.filter((profile) => [profile.code, description(profile), profile.line, profile.manufacturer, config.profile_types[profile.profile_type], profile.alloy].filter(Boolean).join(' ').toLocaleLowerCase('pt-BR').includes(term));
+  if (!visible.length) { const cell = list.insertRow().insertCell(); cell.colSpan = 9; cell.textContent = 'Nenhum perfil encontrado.'; }
   visible.forEach((profile) => {
     const row = list.insertRow(), identity = row.insertCell(), code = document.createElement('strong'), name = document.createElement('small');
-    code.textContent = profile.code; name.textContent = profile.name; identity.append(code, name);
+    code.textContent = profile.code; name.textContent = description(profile); identity.append(code, name);
+    const classification = row.insertCell(), line = document.createElement('strong'), manufacturer = document.createElement('small');
+    line.textContent = profile.line || '—'; manufacturer.textContent = profile.manufacturer || ''; classification.append(line, manufacturer);
+    row.insertCell().textContent = config.profile_types[profile.profile_type] || '—';
     for (const value of [profile.alloy, fmt(profile.jx), fmt(profile.wx), fmt(profile.weight), fmt(profile.area)]) row.insertCell().textContent = value;
     const actions = row.insertCell();
     actions.append(action('Usar', 'mouse-pointer-2', async () => { $('#graphProfile').value = profile.id; await chooseProfile(profile.id); tab('generator'); }));
@@ -128,7 +142,7 @@ async function loadProfiles() {
   profiles = (await api('profiles')).profiles;
   const select = $('#graphProfile'), current = select.value;
   select.replaceChildren(new Option('Selecione um perfil', ''));
-  profiles.forEach((profile) => select.add(new Option(`${profile.code} · ${profile.name}`, profile.id)));
+  profiles.forEach((profile) => select.add(new Option([profile.code, profile.line, profile.manufacturer].filter(Boolean).join(' · '), profile.id)));
   if (snapshotSource && selectedProfile && !profiles.some((profile) => profile.id === current)) select.add(new Option(`${selectedProfile.code} · salvo`, current));
   select.value = current;
   renderCatalogue();
@@ -137,6 +151,7 @@ async function loadProfiles() {
 function chartOptions(data, title) {
   const p = data?.parameters || { x_min: 600, x_max: 1500, x_tick: 100, y_min: 2200, y_max: 5500, y_tick: 200, grid: true, legend: true, colors: [] };
   const mobile = $('#profileChart').clientWidth < 550;
+  const labels = data ? pressureLabels(data, { width: $('#profileChart').clientWidth - (mobile ? 80 : 121), height: $('#profileChart').clientHeight - (p.legend ? 200 : 165), fontSize: mobile ? 9 : 10 }) : [];
   return {
     animation: false, backgroundColor: '#ffffff', color: p.colors.length ? p.colors : palette,
     textStyle: { fontFamily: 'Poppins, sans-serif', color: '#47535c' },
@@ -146,7 +161,7 @@ function chartOptions(data, title) {
     tooltip: { trigger: 'axis', renderMode: 'richText', axisPointer: { type: 'cross', label: { precision: 0 } }, formatter: (items) => items.map((item) => `${item.seriesName}: ${fmt(item.value[1])} mm · ${data.criteria[item.value[2]]}`).join('\n') },
     xAxis: { type: 'value', name: 'Largura da folha (mm)', nameLocation: 'middle', nameGap: 38, min: p.x_min, max: p.x_max, interval: p.x_tick, axisLabel: { fontSize: 10, hideOverlap: true, formatter: fmt }, splitLine: { show: p.grid, lineStyle: { color: '#e4e8ec' } }, axisLine: { show: true, lineStyle: { color: '#aeb8c0' } } },
     yAxis: { type: 'value', name: 'Altura do perfil (mm)', nameLocation: 'middle', nameGap: 45, nameTextStyle: { fontSize: 10 }, min: p.y_min, max: p.y_max, interval: p.y_tick, axisLabel: { fontSize: 10, hideOverlap: true, formatter: fmt }, splitLine: { show: p.grid, lineStyle: { color: '#e4e8ec' } } },
-    series: (data?.curves || []).map((curve) => ({ name: `${fmt(curve.pressure)} Pa`, type: 'line', data: curve.points, showSymbol: false, smooth: false, clip: true, lineStyle: { width: p.line_width }, emphasis: { focus: 'series', lineStyle: { width: p.line_width + 1 } } })),
+    series: (data?.curves || []).map((curve, index) => ({ name: `${fmt(curve.pressure)} Pa`, type: 'line', data: curve.points, showSymbol: false, smooth: false, clip: true, markPoint: labels[index], lineStyle: { width: p.line_width }, emphasis: { focus: 'series', lineStyle: { width: p.line_width + 1 } } })),
   };
 }
 
@@ -203,7 +218,8 @@ async function loadSaved() {
 }
 
 async function openSaved(id) {
-  const current = ++revision;
+  dirty();
+  const current = revision;
   const saved = await api(`saved/${id}`);
   if (current !== revision || root.hidden) return;
   openedGraph = id; snapshotSource = id;
@@ -237,6 +253,7 @@ async function editProfile(id = null) {
   if (current !== imageRevision || root.hidden) return;
   editedProfile = id; $('#profileEditor').reset();
   if (profile) for (const [name, value] of Object.entries(profile)) { if ($('#profileEditor').elements[name]) $('#profileEditor').elements[name].value = value ?? ''; }
+  if (profile) $('#profileEditor').elements.description.value = description(profile);
   $('#profileEditorTitle').textContent = id ? 'Editar perfil' : 'Cadastrar perfil';
   $('#profileEditorError').hidden = true; imagePreview(profile?.image); alloyInfo(); $('#profileEditorDialog').showModal();
 }
@@ -274,9 +291,15 @@ export async function initializeGraphs(view) {
     const script = document.createElement('script'); script.src = 'https://cdn.jsdelivr.net/npm/echarts@5.6.0/dist/echarts.min.js'; script.onload = resolve; script.onerror = () => reject(new Error('Não foi possível carregar o gráfico.')); document.head.append(script);
   });
   config = await api('config');
+  config.profile_types ||= {};
   await Promise.all([stylesReady, library]);
   $('#newProfile').hidden = !config.can_edit_profiles;
   Object.keys(config.alloys).forEach((name) => $('#profileEditor').elements.alloy.add(new Option(name, name)));
+  Object.entries(config.profile_types).forEach(([value, label]) => $('#profileEditor').elements.profile_type.add(new Option(label, value)));
+  $('#graphStandards').addEventListener('click', () => $('#graphStandardsDialog').showModal());
+  $('#closeGraphStandards').addEventListener('click', () => $('#graphStandardsDialog').close());
+  $('#graphStandardsDialog').addEventListener('click', (event) => { if (event.target === $('#graphStandardsDialog')) $('#graphStandardsDialog').close(); });
+  window.addEventListener('calculator-permissions-changed', navigation);
   root.querySelectorAll('[data-graph-tab]').forEach((button) => {
     button.addEventListener('click', () => tab(button.dataset.graphTab));
     button.addEventListener('keydown', (event) => {
@@ -320,5 +343,6 @@ export function showGraphs() {
   if (!chart) { chart = window.echarts.init($('#profileChart'), null, { renderer: 'canvas' }); chart.setOption(chartOptions(null)); }
   requestAnimationFrame(() => chart.resize());
   $('#newProfile').hidden = !getProfile()?.admin;
+  navigation();
   renderCatalogue();
 }

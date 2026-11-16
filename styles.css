@@ -153,7 +153,7 @@ a.top-btn {
   font-size: 1.5em;
 }
 
-#sidebar {
+#sidebar, .app-sidebar {
   width: 250px;
   padding: 28px 24px;
   background: var(--white);
@@ -1388,7 +1388,7 @@ dialog::backdrop {
     align-items: stretch;
   }
 
-  #sidebar {
+  #sidebar, .app-sidebar {
     width: 100%;
     min-height: auto;
     padding: 16px;
@@ -1471,7 +1471,7 @@ dialog::backdrop {
   background: transparent;
 }
 
-#sidebar {
+#sidebar, .app-sidebar {
   width: 218px;
   display: flex;
   flex-direction: column;
@@ -1900,7 +1900,7 @@ input[aria-invalid="true"] {
 }
 
 @media (max-width: 960px) {
-  #sidebar { width: 192px; }
+  #sidebar, .app-sidebar { width: 192px; }
   .calculator-page { padding: 20px; }
   .workspace,
   .workspace.manual-workspace { grid-template-columns: minmax(0, 1fr); }
@@ -1915,7 +1915,7 @@ input[aria-invalid="true"] {
   .brand strong { font-size: 14px; }
   .brand img { width: 30px; height: 30px; }
   .standards-button { width: fit-content; margin-top: 8px; padding: 8px 10px; gap: 5px; }
-  #sidebar { width: 100%; padding: 8px 12px; border-right: 0; border-bottom: 1px solid var(--border-color); }
+  #sidebar, .app-sidebar { width: 100%; padding: 8px 12px; border-right: 0; border-bottom: 1px solid var(--border-color); }
   .nav-label { display: none; }
   .app-navigation { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; }
   .app-navigation a { flex-shrink: 0; min-height: 38px; gap: 6px; padding: 8px 10px; font-size: 11px; }
