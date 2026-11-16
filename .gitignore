@@ -1,0 +1,20 @@
+# Keep backend code, local credentials and data out of this repository.
+.env
+.env.*
+.secrets/
+*service-account*.json
+*firebase-adminsdk*.json
+*.pem
+*.key
+*.py
+*.pyc
+__pycache__/
+venv/
+.venv/
+refresh_token.txt
+*.geojson
+*.tiff
+*.xlsx
+*.db
+node_modules/
+.DS_Store
