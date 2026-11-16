@@ -35,7 +35,7 @@ export function pressureLabels(data, { width, height, fontSize = 10, fontFamily 
     if (!position) return undefined;
     return {
       silent: true, animation: false, symbol: 'circle', symbolSize: 0,
-      label: { show: true, formatter: () => value, position, align, verticalAlign: position === 'top' ? 'bottom' : 'top', distance: 5, offset: [dx, 0], fontSize, fontFamily, color: '#233640', backgroundColor: '#ffffff', padding: [1, 2] },
+      label: { show: true, formatter: () => value, position, align, verticalAlign: position === 'top' ? 'bottom' : 'top', distance: 5, offset: [dx, 0], fontSize, fontFamily, color: '#233640', backgroundColor: 'transparent', textBorderWidth: 0, padding: [1, 2] },
       data: [{ coord: point, value: curve.pressure }],
     };
   });
